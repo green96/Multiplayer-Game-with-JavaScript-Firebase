@@ -1,0 +1,254 @@
+* {
+  box-sizing:border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: linear-gradient(180deg, #64BEFF -50%, #6e96ff 69.71%, #2a65ff 150%);
+  font-family: 'Source Sans Pro', sans-serif;
+  
+  /*This center stuff*/
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-container { 
+  position: relative;
+  /*this set the width and height to match with the background images */
+  width: 240px;
+  height: 208px;
+  /*game scence as background images*/
+  background: url(/images/map.png) no-repeat no-repeat;
+  transform: scale(3);/*scale the game scence up by 3 time*/
+  
+  image-rendering: pixelated;/*this stop pixel from being blur*/
+}
+
+.player-info {
+  position: absolute;
+  top: 0;
+  left:0;
+  padding: 1em;
+  display: flex;
+  gap: 0.5em;
+  align-items: flex-end
+}
+
+label {
+  display: block;
+  font-weight: bold;
+}
+
+input[type="text"],
+button {
+  font-family: inherit;
+  font-weight: bold;
+  font-size: 18px;
+  height: 44px;
+  border-radius: 4px;
+  outline: 0;
+}
+
+input[type="text"] {
+  outline: 0;
+  padding-left: 0.5em;
+  border: 3px solid #222034;
+  width: 150px;
+  text-transform: uppercase;
+}
+input[type="text"]:focus {
+  border-color: #f000ff;
+}
+
+button {
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  background: #59ff5a;
+  border: 0;
+  border-bottom: 2px solid #1e830b;
+  cursor: pointer;
+}
+button:active {
+  position: relative;
+  top: 1px;
+}
+
+/* Characters */
+
+/*
+position: absolute;
+    Phần tử .grid-cell sẽ được định vị tuyệt đối trong phần tử cha (phải có position: relative hoặc absolute ở cha).
+    Điều này cho phép bạn đặt vị trí thủ công bằng top, left hoặc transform.
+width: 16px; height: 16px;
+    Mỗi phần tử .grid-cell có kích thước đúng 1 ô lưới: 16x16 pixel.
+    Đây là kích thước chuẩn cho bản đồ kiểu pixel/grid như game 2D.
+*/
+.grid-cell {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+}
+
+/*.Character { transition: transform 0.4s; }
+    Khi nhân vật di chuyển, tức là transform: translate3d(...) thay đổi → nhân vật trượt mượt mà trong 0.4 giây.
+    Tạo hiệu ứng chuyển động tự nhiên.
+    🧠 Không có transition, nhân vật sẽ dịch chuyển lập tức, nhìn rất "giật".
+*/
+.Character {
+  transition: transform 0.4s;
+}
+
+/* .Character.you { z-index: 1; }
+    Nếu nhân vật này là chính bạn (người chơi), nó có class you.
+    z-index: 1 đảm bảo nhân vật của bạn luôn ở trên cùng, không bị người chơi khác che khuất.
+*/
+.Character.you {
+  z-index: 1;
+}
+/* .Character.you .Character_you-arrow { display: block; }
+    Khi bạn là người điều khiển nhân vật (class you), một mũi tên chỉ hướng (có class .Character_you-arrow) sẽ hiện lên.
+    Mặc định có thể display: none, nên chỉ khi là người chơi chính thì nó mới hiển thị.
+*/
+.Character.you .Character_you-arrow {
+  display: block;
+}
+
+
+
+/*
+Dòng	Ý nghĩa
+display: none;	Mặc định ẩn mũi tên. Chỉ hiển thị khi class you được thêm vào .Character. (→ đã xử lý bằng đoạn .Character.you .Character_you-arrow { display: block; })
+position: absolute;	Cho phép định vị mũi tên tương đối với nhân vật
+top: -18px;	Mũi tên nằm trên đầu nhân vật, cách đỉnh nhân vật 18px
+left: 5px;	Dịch sang phải 5px để căn giữa trên đầu nhân vật
+width: 7px; height: 5px;	Kích thước mũi tên rất nhỏ gọn
+background: url(/images/arrow.png) no-repeat no-repeat;	Gắn ảnh arrow.png làm hình nền cho mũi tên, không lặp lại
+*/
+.Character_you-arrow {
+  display: none;
+  position: absolute;
+  top:-18px;
+  left: 5px;
+  width: 7px;
+  height: 5px;
+  background: url(/images/arrow.png) no-repeat no-repeat;
+}
+
+
+
+
+/*
+overflow: hidden;	Ẩn phần bị tràn ra khỏi vùng hiển thị. Dùng khi sprite lớn hơn container hoặc khi muốn cắt đúng 1 frame trong ảnh sprite sheet.
+top: -3px;	Dịch phần tử lên trên 3px. ⚠️ Thiếu position: absolute hoặc relative nên dòng này có thể không có tác dụng nếu chưa định vị phần tử.
+background: url(/images/characters.png);	Gán ảnh nền cho phần tử. Đây thường là sprite sheet – tập hợp các nhân vật hoặc hoạt ảnh trong 1 ảnh duy nhất.
+*/
+/*This used our character spritesheet*/
+.Character_sprite {
+  overflow: hidden;
+  top: -3px;
+  background: url(/images/characters.png);
+}
+
+/*ChatGPT said:
+
+Đoạn CSS này điều chỉnh vị trí hiển thị sprite nhân vật (ảnh nền) dựa trên data-direction (hướng đi) và data-color (màu/loại nhân vật).*/
+/*Mục đích	Di chuyển ảnh nền sang trái 16px để hiển thị hình nhân vật quay phải (từ sprite sheet).
+Ý nghĩa	Khi nhân vật đang đi sang phải, thì đổi phần background-position-x để hiện đúng frame nhân vật quay phải.*/
+.Character[data-direction="right"] .Character_sprite {
+  background-position-x: 16px;
+}
+
+/*Mục đích	Mỗi nhân vật có một hàng riêng trong sprite sheet theo màu.
+Ví dụ	Nếu nhân vật có data-color="green", CSS sẽ cắt hàng thứ 5 trong sprite (y = -64px).*/
+.Character[data-color="red"] .Character_sprite {
+  background-position-y: -16px;
+}
+.Character[data-color="orange"] .Character_sprite {
+  background-position-y: -32px;
+}
+.Character[data-color="yellow"] .Character_sprite {
+  background-position-y: -48px;
+}
+.Character[data-color="green"] .Character_sprite {
+  background-position-y: -64px;
+}
+.Character[data-color="purple"] .Character_sprite {
+  background-position-y: -80px;
+}
+/*This just add shadow(an image) under the character */
+.Character_shadow {
+  background: url(/images/shadow.png) no-repeat no-repeat;
+}
+
+
+
+/*
+Thuộc tính	Giải thích
+position: absolute;	Cố định vị trí của tên nhân vật tương đối với nhân vật.
+top: -12px; left: -5px;	Dịch khung tên lên trên đầu nhân vật một chút, và sang trái 5px.
+font-size: 5px;	Kích thước chữ nhỏ gọn để không chiếm nhiều chỗ.
+padding: 1px 2px 1px;	Tạo khoảng cách bên trong khung tên, giúp chữ dễ đọc hơn.
+border-radius: 3px;	Bo tròn góc khung cho mềm mại.
+background: #333; color: white;	Nền tối, chữ trắng để dễ đọc trên mọi nền game.
+font-weight: bold;	In đậm để nổi bật.
+text-transform: uppercase;	Tên nhân vật luôn in hoa.
+white-space: nowrap;	Không cho phép xuống dòng, giúp tên nằm gọn trong 1 dòng.
+*/
+.Character_name-container {
+  position: absolute;
+  top: -12px;
+  left: -5px;
+  font-size: 5px;
+  padding: 1px 2px 1px;
+  border-radius: 3px;
+  background: #333;
+  color: white;
+  font-weight: bold;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+
+/*
+Thuộc tính	Giải thích
+margin-left: 1px;	Tạo khoảng cách nhỏ giữa tên và số xu.
+color: gold;	Màu vàng đặc trưng để dễ nhận biết là "coin".
+*/
+.Character_coins {
+  margin-left: 1px;
+  color: gold;
+}
+
+/* Coins */
+/*
+Hiển thị hình ảnh đồng xu từ file /images/coin.png.
+Áp dụng animation coinFloat:
+    Thời gian: 0.8s
+    Dạng: linear
+    Lặp lại: infinite (vô hạn)
+    Kiểu lặp: alternate-reverse → đi lên rồi đi xuống (mềm mại)
+*/
+.Coin_sprite {
+  background: url(/images/coin.png) no-repeat no-repeat;
+  animation: coinFloat 0.8s linear infinite alternate-reverse;
+}
+
+
+/*
+Tạo hiệu ứng "nhấp nhô" cho coin (đồng xu trồi lên rồi chìm xuống).
+Đồng xu sẽ "nhảy nhẹ" liên tục để gây chú ý cho người chơi.
+*/
+@keyframes coinFloat {
+  from { transform: translateY(0) }
+  to { transform: translateY(5px) }
+}
+
+/*Hiển thị bóng của đồng xu bên dưới, tăng chiều sâu và đẹp hơn.*/
+.Coin_shadow {
+  background: url(/images/coin-shadow.png) no-repeat no-repeat;
+}
+
+
