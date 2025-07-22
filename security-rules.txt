@@ -21,3 +21,35 @@ For example, any logged in player could currently delete all the coins in the ga
   }
 }
 ```
+
+
+New rule in firebase(use now)
+{
+  "rules": {
+    // ✅ Cho phép đọc toàn bộ database nếu người dùng đã đăng nhập
+    ".read": "auth != null",
+
+    // ❌ Không cho ghi toàn cục, chỉ cho ghi ở các mục được khai báo rõ
+    ".write": false,
+
+    "players": {
+      "$uid": {
+        // ✅ Người dùng chỉ được phép ghi dữ liệu của chính mình (theo UID)
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+
+    "coins": {
+      // ✅ Cho phép người dùng đã đăng nhập ghi dữ liệu coin (ví dụ nhặt xu)
+      ".write": "auth != null"
+    },
+
+    "chat": {
+      // ✅ Cho phép người dùng đã đăng nhập xem tin nhắn (chat)
+      ".read": "auth != null",
+
+      // ✅ Cho phép người dùng đã đăng nhập gửi tin nhắn
+      ".write": "auth != null"
+    }
+  }
+}
